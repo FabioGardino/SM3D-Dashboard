@@ -11,75 +11,201 @@
     <style>
         .tab-content { display: none; }
         .tab-content.active { display: block; }
-        .nav-tab.active { border-bottom: 2px solid #3b82f6; color: #3b82f6; font-weight: 600; }
+        .nav-tab.active { 
+            border-bottom: 3px solid #3b82f6; 
+            color: #3b82f6; 
+            font-weight: 600; 
+        }
         table { width: 100%; border-collapse: collapse; }
         th, td { padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; }
         th { background-color: #f9fafb; font-weight: 600; color: #374151; position: sticky; top: 0; }
         tr:hover { background-color: #f3f4f6; }
+        
+        /* KPI Cards Styling */
+        .kpi-card {
+            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+            border-radius: 12px;
+            padding: 24px;
+            color: white;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .kpi-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
+        }
+        
+        .kpi-card.green { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
+        .kpi-card.red { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); }
+        .kpi-card.purple { background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%); }
+        
+        .kpi-label {
+            font-size: 0.875rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            opacity: 0.9;
+            text-transform: uppercase;
+        }
+        
+        .kpi-value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-top: 12px;
+        }
+        
+        /* Header Layout */
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 2rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+        
+        .header-title {
+            flex: 0 0 auto;
+        }
+        
+        .kpi-container {
+            flex: 1;
+            min-width: 600px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+        
+        /* Navigation Tabs */
+        .nav-tab {
+            position: relative;
+            padding-bottom: 12px !important;
+        }
+        
+        .nav-tab:hover {
+            color: #3b82f6;
+        }
+        
+        /* Charts Container */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+        
+        .chart-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .chart-card h3 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 16px;
+        }
+
+        /* Loading Spinner */
+        #loading {
+            backdrop-filter: blur(2px);
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 1024px) {
+            .header-container {
+                flex-direction: column;
+            }
+            
+            .kpi-container {
+                min-width: 100%;
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 640px) {
+            .kpi-container {
+                grid-template-columns: 1fr;
+            }
+
+            .kpi-value {
+                font-size: 1.5rem;
+            }
+
+            .header-title h1 {
+                font-size: 1.875rem;
+            }
+        }
     </style>
 </head>
-<body class="bg-gray-50 text-gray-800 font-sans">
+<body class="bg-gray-100 text-gray-800 font-sans">
 
     <div class="container mx-auto px-4 py-8">
         <!-- Loading Overlay -->
-        <div id="loading" class="fixed inset-0 bg-white bg-opacity-90 flex flex-col items-center justify-center z-50 transition-opacity duration-300">
+        <div id="loading" class="fixed inset-0 bg-white bg-opacity-75 flex flex-col items-center justify-center z-50 transition-opacity duration-300">
             <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-500 mb-4"></div>
             <p class="text-lg font-medium text-gray-600">Sincronizando com o Google Sheets em tempo real...</p>
         </div>
 
-        <header class="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
+        <!-- Header Section -->
+        <div class="header-container">
+            <div class="header-title">
                 <h1 class="text-3xl font-bold text-gray-900">Dashboard Empresarial - Gestão 3D</h1>
-                <p class="text-gray-500 mt-2">Conectado diretamente às suas planilhas integradas</p>
+                <p class="text-gray-600 mt-2 text-sm">Conectado diretamente às suas planilhas integradas</p>
             </div>
-            <button onclick="fetchData()" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg shadow transition duration-200 text-sm flex items-center gap-2">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1[...]
-                Atualizar Dados
-            </button>
-        </header>
 
-        <!-- KPI Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <div class="bg-white rounded-lg shadow p-6 border-l-4 border-blue-500">
-                <h3 class="text-gray-500 text-sm font-semibold uppercase tracking-wider">Total Vendas (Receita)</h3>
-                <p class="text-2xl font-bold text-gray-900 mt-2" id="kpi-vendas-total">R$ 0,00</p>
-            </div>
-            <div class="bg-white rounded-lg shadow p-6 border-l-4 border-green-500">
-                <h3 class="text-gray-500 text-sm font-semibold uppercase tracking-wider">Lucro Real Estimado</h3>
-                <p class="text-2xl font-bold text-gray-900 mt-2" id="kpi-lucro">R$ 0,00</p>
-            </div>
-            <div class="bg-white rounded-lg shadow p-6 border-l-4 border-red-500">
-                <h3 class="text-gray-500 text-sm font-semibold uppercase tracking-wider">Total em Matéria-Prima</h3>
-                <p class="text-2xl font-bold text-gray-900 mt-2" id="kpi-compras">R$ 0,00</p>
-            </div>
-            <div class="bg-white rounded-lg shadow p-6 border-l-4 border-purple-500">
-                <h3 class="text-gray-500 text-sm font-semibold uppercase tracking-wider">Produtos no Catálogo</h3>
-                <p class="text-2xl font-bold text-gray-900 mt-2" id="kpi-produtos">0</p>
+            <!-- KPI Cards -->
+            <div class="kpi-container">
+                <div class="kpi-card">
+                    <div class="kpi-label">Total Vendas (Receita)</div>
+                    <div class="kpi-value" id="kpi-vendas-total">R$ 0,00</div>
+                </div>
+                <div class="kpi-card green">
+                    <div class="kpi-label">Lucro Real Estimado</div>
+                    <div class="kpi-value" id="kpi-lucro">R$ 0,00</div>
+                </div>
+                <div class="kpi-card red">
+                    <div class="kpi-label">Total em Matéria-Prima</div>
+                    <div class="kpi-value" id="kpi-compras">R$ 0,00</div>
+                </div>
+                <div class="kpi-card purple">
+                    <div class="kpi-label">Produtos no Catálogo</div>
+                    <div class="kpi-value" id="kpi-produtos">0</div>
+                </div>
             </div>
         </div>
 
         <!-- Tabs Navigation -->
-        <div class="border-b border-gray-200 mb-6">
-            <nav class="-mb-px flex space-x-8 overflow-x-auto" aria-label="Tabs">
-                <button onclick="openTab('resumo')" class="nav-tab active whitespace-nowrap py-4 px-1 font-medium text-sm text-gray-500 hover:text-gray-700">Resumo & Gráficos</button>
-                <button onclick="openTab('vendas')" class="nav-tab whitespace-nowrap py-4 px-1 font-medium text-sm text-gray-500 hover:text-gray-700">Vendas</button>
-                <button onclick="openTab('compras')" class="nav-tab whitespace-nowrap py-4 px-1 font-medium text-sm text-gray-500 hover:text-gray-700">Compras de Materiais</button>
-                <button onclick="openTab('produtos')" class="nav-tab whitespace-nowrap py-4 px-1 font-medium text-sm text-gray-500 hover:text-gray-700">Produtos</button>
-                <button onclick="openTab('equipamentos')" class="nav-tab whitespace-nowrap py-4 px-1 font-medium text-sm text-gray-500 hover:text-gray-700">Equipamentos</button>
+        <div class="border-b border-gray-300 mb-6 bg-white px-4 -mx-4">
+            <nav class="flex space-x-8 overflow-x-auto" aria-label="Tabs">
+                <button onclick="openTab('resumo')" class="nav-tab active whitespace-nowrap py-4 font-medium text-sm text-gray-600 hover:text-gray-900">Resumo & Gráficos</button>
+                <button onclick="openTab('vendas')" class="nav-tab whitespace-nowrap py-4 font-medium text-sm text-gray-600 hover:text-gray-900">Vendas</button>
+                <button onclick="openTab('compras')" class="nav-tab whitespace-nowrap py-4 font-medium text-sm text-gray-600 hover:text-gray-900">Compras de Materiais</button>
+                <button onclick="openTab('produtos')" class="nav-tab whitespace-nowrap py-4 font-medium text-sm text-gray-600 hover:text-gray-900">Produtos</button>
+                <button onclick="openTab('equipamentos')" class="nav-tab whitespace-nowrap py-4 font-medium text-sm text-gray-600 hover:text-gray-900">Equipamentos</button>
             </nav>
         </div>
 
         <!-- Tab Contents -->
         <div id="resumo" class="tab-content active">
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div class="bg-white rounded-lg shadow p-6">
-                    <h3 class="text-lg font-semibold mb-4 text-gray-700">Demonstrativo Financeiro (Receita vs Custos)</h3>
+            <div class="flex justify-between items-center mb-4">
+                <button onclick="fetchData()" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg shadow transition duration-200 text-sm flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1 1 3.59 8.59m12.823 3.41"></path></svg>
+                    Atualizar Dados
+                </button>
+            </div>
+            
+            <div class="charts-grid">
+                <div class="chart-card">
+                    <h3>Demonstrativo Financeiro (Receita vs Custos)</h3>
                     <div class="relative h-64">
                         <canvas id="chartReceitaCustos"></canvas>
                     </div>
                 </div>
-                <div class="bg-white rounded-lg shadow p-6">
-                    <h3 class="text-lg font-semibold mb-4 text-gray-700">Top 5 Modelos 3D Mais Vendidos (Qtd)</h3>
+                <div class="chart-card">
+                    <h3>Top 5 Modelos 3D Mais Vendidos (Qtd)</h3>
                     <div class="relative h-64 flex justify-center">
                         <canvas id="chartTopProdutos"></canvas>
                     </div>
@@ -362,7 +488,8 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    scales: { y: { beginAtZero: true } }
+                    scales: { y: { beginAtZero: true } },
+                    plugins: { legend: { position: 'top' } }
                 }
             });
 
