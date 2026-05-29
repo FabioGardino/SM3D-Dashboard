@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard de Gestão 3D - Google Sheets Live</title>
+    <title>Dashboard SM3D</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Chart.js -->
@@ -404,6 +404,13 @@
                 custoHora: cleanCurrency(e['Custo por Hora'])
             }));
 
+            let totalMP = 0;
+            processedProdutos.forEach(p => {
+                if( p.tipo === "MP" ){
+                    totalMP += 1
+                }
+            });
+            
             // --- Cálculos de KPIs ---
             let totalVendas = 0;
             let totalLucro = 0;
