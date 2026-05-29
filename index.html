@@ -380,7 +380,7 @@
                 id: c['ID'] || 'N/A',
                 materiaPrima: c['Materia Prima'],
                 fornecedor: c['Fornecedor'] || 'N/A',
-                qtdEstoque: parseFloat(c['Qtd Estoque'].replace(",", ".") || 0.0,
+                qtdEstoque: parseFloat(c['Qtd Estoque'].replace(",", ".")) || 0.0,
                 custoTotal: cleanCurrency(c['Custo Total'])
             }));
 
