@@ -152,8 +152,7 @@
         <!-- Header Section -->
         <div class="header-container">
             <div class="header-title">
-                <h1 class="text-3xl font-bold text-gray-900">Dashboard Empresarial - Gestão 3D</h1>
-                <p class="text-gray-600 mt-2 text-sm">Conectado diretamente às suas planilhas integradas</p>
+                <h1 class="text-3xl font-bold text-gray-900">Dashboard SM3D</h1>
             </div>
 
             <!-- KPI Cards -->
@@ -381,7 +380,7 @@
                 id: c['ID'] || 'N/A',
                 materiaPrima: c['Materia Prima'],
                 fornecedor: c['Fornecedor'] || 'N/A',
-                qtdEstoque: parseFloat(c['Qtd Estoque']) || 0,
+                qtdEstoque: parseFloat(c['Qtd Estoque'].replace(",", ".") || 0.0,
                 custoTotal: cleanCurrency(c['Custo Total'])
             }));
 
@@ -404,10 +403,10 @@
                 custoHora: cleanCurrency(e['Custo por Hora'])
             }));
 
-            let totalMP = 0;
+            let totalPA = 0;
             processedProdutos.forEach(p => {
                 if( p.tipo === "PA" ){
-                    totalMP += 1
+                    totalPA += 1
                 }
             });
             
@@ -427,7 +426,7 @@
             document.getElementById('kpi-vendas-total').textContent = formatBRL(totalVendas);
             document.getElementById('kpi-lucro').textContent = formatBRL(totalLucro);
             document.getElementById('kpi-compras').textContent = formatBRL(totalCompras);
-            document.getElementById('kpi-produtos').textContent = processedProdutos.length;
+            document.getElementById('kpi-produtos').textContent = totalPA;
 
             // --- Renderizar Tabelas ---
             renderTable('table-vendas', processedVendas, ['id', 'cliente', 'produto', 'qtd', 'valorVenda', 'custo', 'lucro'], true);
