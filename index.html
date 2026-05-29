@@ -113,6 +113,49 @@
             backdrop-filter: blur(2px);
         }
 
+        /* Search Input Styling */
+        .search-container {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .search-input {
+            flex: 1;
+            min-width: 250px;
+            padding: 10px 16px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .search-input::placeholder {
+            color: #9ca3af;
+        }
+
+        .clear-search-btn {
+            padding: 10px 16px;
+            background-color: #e5e7eb;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            color: #374151;
+            transition: background-color 0.2s;
+        }
+
+        .clear-search-btn:hover {
+            background-color: #d1d5db;
+        }
+
         /* Responsive adjustments */
         @media (max-width: 1024px) {
             .header-container {
@@ -136,6 +179,14 @@
 
             .header-title h1 {
                 font-size: 1.875rem;
+            }
+
+            .search-container {
+                flex-direction: column;
+            }
+
+            .search-input {
+                min-width: 100%;
             }
         }
     </style>
@@ -191,7 +242,7 @@
         <div id="resumo" class="tab-content active">
             <div class="flex justify-between items-center mb-4">
                 <button onclick="fetchData()" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg shadow transition duration-200 text-sm flex items-center gap-2">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1 1 3.59 8.59m12.823 3.41"></path></svg>
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001[...]
                     Atualizar Dados
                 </button>
             </div>
@@ -213,6 +264,10 @@
         </div>
 
         <div id="vendas" class="tab-content">
+            <div class="search-container">
+                <input type="text" id="search-vendas" class="search-input" placeholder="Pesquisar por ID Venda, Cliente, Produto..." onkeyup="filterTable('vendas', 'search-vendas')">
+                <button class="clear-search-btn" onclick="clearSearch('vendas', 'search-vendas')">Limpar</button>
+            </div>
             <div class="bg-white rounded-lg shadow overflow-hidden">
                 <div class="max-h-[600px] overflow-y-auto">
                     <table id="table-vendas">
@@ -234,6 +289,10 @@
         </div>
 
         <div id="compras" class="tab-content">
+            <div class="search-container">
+                <input type="text" id="search-compras" class="search-input" placeholder="Pesquisar por ID, Matéria Prima, Fornecedor..." onkeyup="filterTable('compras', 'search-compras')">
+                <button class="clear-search-btn" onclick="clearSearch('compras', 'search-compras')">Limpar</button>
+            </div>
             <div class="bg-white rounded-lg shadow overflow-hidden">
                 <div class="max-h-[600px] overflow-y-auto">
                     <table id="table-compras">
@@ -253,6 +312,10 @@
         </div>
 
         <div id="produtos" class="tab-content">
+            <div class="search-container">
+                <input type="text" id="search-produtos" class="search-input" placeholder="Pesquisar por ID, Descrição, Fornecedor..." onkeyup="filterTable('produtos', 'search-produtos')">
+                <button class="clear-search-btn" onclick="clearSearch('produtos', 'search-produtos')">Limpar</button>
+            </div>
             <div class="bg-white rounded-lg shadow overflow-hidden">
                 <div class="max-h-[600px] overflow-y-auto">
                     <table id="table-produtos">
@@ -273,6 +336,10 @@
         </div>
 
         <div id="equipamentos" class="tab-content">
+            <div class="search-container">
+                <input type="text" id="search-equipamentos" class="search-input" placeholder="Pesquisar por ID, Equipamento, Data..." onkeyup="filterTable('equipamentos', 'search-equipamentos')">
+                <button class="clear-search-btn" onclick="clearSearch('equipamentos', 'search-equipamentos')">Limpar</button>
+            </div>
             <div class="bg-white rounded-lg shadow overflow-hidden">
                 <div class="max-h-[600px] overflow-y-auto">
                     <table id="table-equipamentos">
@@ -305,6 +372,7 @@
 
         let globalData = {};
         let charts = {};
+        let processedData = {};
 
         // Formata moeda BRL
         const formatBRL = (value) => {
@@ -403,6 +471,14 @@
                 custoHora: cleanCurrency(e['Custo por Hora'])
             }));
 
+            // Armazenar dados processados para filtros
+            processedData = {
+                vendas: processedVendas,
+                compras: processedCompras,
+                produtos: processedProdutos,
+                equipamentos: processedEquipamentos
+            };
+
             let totalPA = 0;
             processedProdutos.forEach(p => {
                 if( p.tipo === "PA" ){
@@ -466,6 +542,63 @@
                 });
                 tbody.appendChild(tr);
             });
+        }
+
+        function filterTable(tableType, searchInputId) {
+            const searchTerm = document.getElementById(searchInputId).value.toLowerCase();
+            const data = processedData[tableType];
+            
+            if (!data) return;
+
+            // Determinar as chaves a pesquisar
+            let keysToSearch = [];
+            switch(tableType) {
+                case 'vendas':
+                    keysToSearch = ['id', 'cliente', 'produto'];
+                    break;
+                case 'compras':
+                    keysToSearch = ['id', 'materiaPrima', 'fornecedor'];
+                    break;
+                case 'produtos':
+                    keysToSearch = ['id', 'descricao', 'fornecedor'];
+                    break;
+                case 'equipamentos':
+                    keysToSearch = ['id', 'equipamento', 'dataCompra'];
+                    break;
+            }
+
+            // Filtrar dados
+            const filteredData = data.filter(row => {
+                return keysToSearch.some(key => {
+                    const cellValue = String(row[key] || '').toLowerCase();
+                    return cellValue.includes(searchTerm);
+                });
+            });
+
+            // Renderizar tabela filtrada
+            const tableId = `table-${tableType}`;
+            let keys = [];
+            switch(tableType) {
+                case 'vendas':
+                    keys = ['id', 'cliente', 'produto', 'qtd', 'valorVenda', 'custo', 'lucro'];
+                    break;
+                case 'compras':
+                    keys = ['id', 'materiaPrima', 'fornecedor', 'qtdEstoque', 'custoTotal'];
+                    break;
+                case 'produtos':
+                    keys = ['id', 'descricao', 'fornecedor', 'unidade', 'tipo', 'custoMedio'];
+                    break;
+                case 'equipamentos':
+                    keys = ['id', 'equipamento', 'dataCompra', 'valorCompra', 'custoHora'];
+                    break;
+            }
+
+            renderTable(tableId, filteredData, keys, tableType === 'vendas');
+        }
+
+        function clearSearch(tableType, searchInputId) {
+            document.getElementById(searchInputId).value = '';
+            filterTable(tableType, searchInputId);
         }
 
         function renderCharts(vendas) {
